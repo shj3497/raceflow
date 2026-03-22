@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useCallback, useRef, useEffect } from 'react';
-import type mapboxgl from 'mapbox-gl';
+import type maplibregl from 'maplibre-gl';
 import type { RaceDetail, RunnerResult } from '@/lib/types';
 import { buildRunnersGeoJSON, calculateStats } from '@/lib/animation';
 import { useRaceAnimation } from '@/hooks/useRaceAnimation';
@@ -18,7 +18,7 @@ interface ReplayClientProps {
 }
 
 export default function ReplayClient({ race, runners, totalDuration }: ReplayClientProps) {
-  const mapInstanceRef = useRef<mapboxgl.Map | null>(null);
+  const mapInstanceRef = useRef<maplibregl.Map | null>(null);
   const [selectedRunner, setSelectedRunner] = useState<string | null>(null);
 
   const { currentTime, isPlaying, playbackSpeed, play, pause, seek, setPlaybackSpeed } =
@@ -40,7 +40,7 @@ export default function ReplayClient({ race, runners, totalDuration }: ReplayCli
     if (now - lastUpdateRef.current < 33 && isPlaying) return;
     lastUpdateRef.current = now;
 
-    const source = map.getSource('runners') as mapboxgl.GeoJSONSource | undefined;
+    const source = map.getSource('runners') as maplibregl.GeoJSONSource | undefined;
     if (!source) return;
 
     const geojson = buildRunnersGeoJSON(
@@ -53,7 +53,7 @@ export default function ReplayClient({ race, runners, totalDuration }: ReplayCli
     source.setData(geojson);
   }, [currentTime, runners, race.split_points, courseCoords, selectedRunner, isPlaying]);
 
-  const handleMapReady = useCallback((map: mapboxgl.Map) => {
+  const handleMapReady = useCallback((map: maplibregl.Map) => {
     mapInstanceRef.current = map;
   }, []);
 

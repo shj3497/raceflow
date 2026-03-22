@@ -21,7 +21,7 @@
 | Mock 데이터 | 프론트엔드 | 2026-03-22 | 9,206명 목 데이터 생성, 서울 하프 코스 GeoJSON |
 
 ## 결정 사항
-- Mapbox GL JS 확정 (WebGL 성능 + AI codegen 친화성)
+- MapLibre GL JS + MapTiler 확정 (Mapbox에서 전환, 오픈소스 + 무료 타일)
 - 개별 점 렌더링 방식 확정 (군집 방식 X)
 - Supabase (PostgreSQL) + Next.js API Routes (별도 백엔드 X)
 - Figma MCP 양방향 연동 (Stitch는 나중에)
@@ -56,4 +56,4 @@ src/
 - GET /api/races/[id]/results → mockRunners 사용 중
 
 ## 블로커
-- NEXT_PUBLIC_MAPBOX_TOKEN 환경변수 설정 필요 (지도 렌더링용)
+- NEXT_PUBLIC_MAPTILER_KEY 환경변수 설정 필요 (지도 렌더링용)
