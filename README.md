@@ -2,7 +2,7 @@
 
 마라톤 레이스를 실시간으로 리플레이하는 웹 서비스. 수천 명의 러너가 실제 코스 위를 달리는 모습을 지도 위에서 시각적으로 확인할 수 있습니다.
 
-https://github.com/shj3497/raceflow/raw/master/public/video/sample.mp4
+[https://github.com/shj3497/raceflow/raw/master/public/video/sample.mp4](https://github.com/shj3497/raceflow/raw/master/public/video/sample.mp4)
 
 ## Features
 
@@ -15,17 +15,19 @@ https://github.com/shj3497/raceflow/raw/master/public/video/sample.mp4
 
 ## Demo
 
-https://github.com/shj3497/raceflow/raw/master/public/video/sample.mp4
+[https://github.com/shj3497/raceflow/raw/master/public/video/sample.mp4](https://github.com/shj3497/raceflow/raw/master/public/video/sample.mp4)
 
 ## Tech Stack
 
-| 영역 | 기술 |
-|------|------|
-| Frontend | Next.js 16, React 19, TypeScript, Tailwind CSS 4 |
-| Map | MapLibre GL JS + MapTiler |
-| Database | Supabase (PostgreSQL) |
-| Animation | requestAnimationFrame + per-frame 실시간 보간 |
-| Data | myresult.co.kr API 크롤링 → Supabase 적재 |
+
+| 영역        | 기술                                               |
+| --------- | ------------------------------------------------ |
+| Frontend  | Next.js 16, React 19, TypeScript, Tailwind CSS 4 |
+| Map       | MapLibre GL JS + MapTiler                        |
+| Database  | Supabase (PostgreSQL)                            |
+| Animation | requestAnimationFrame + per-frame 실시간 보간         |
+| Data      | myresult.co.kr API 크롤링 → Supabase 적재             |
+
 
 ## Architecture
 
@@ -57,6 +59,7 @@ https://github.com/shj3497/raceflow/raw/master/public/video/sample.mp4
 ```
 
 **데이터 흐름:**
+
 1. Server Component에서 Supabase로 레이스 데이터 + 9,206명 결과 조회
 2. `prepareRunnerWaypoints()`로 각 러너의 스플릿 → 경유지(waypoint) 변환 (경량)
 3. Client에서 `requestAnimationFrame` 루프로 매 프레임 `computeFramePositions()` 호출
@@ -116,7 +119,7 @@ npm install
 npm run dev
 ```
 
-http://localhost:3000 에서 확인할 수 있습니다.
+[http://localhost:3000](http://localhost:3000) 에서 확인할 수 있습니다.
 
 ## Course Data
 
@@ -132,6 +135,3 @@ http://localhost:3000 에서 확인할 수 있습니다.
 - **per-frame 실시간 보간** — 전체 프레임 사전 계산 대신, 현재 시간의 위치만 즉석 계산
 - **Server Component SSR** — 데이터 조회/전처리는 서버에서, 렌더링만 클라이언트에서
 
-## License
-
-MIT
