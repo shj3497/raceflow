@@ -4,6 +4,7 @@ import { useRef, useEffect, useCallback } from 'react';
 import maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import type { RaceDetail } from '@/lib/types';
+import { getPointAtDistance } from '@/lib/interpolate';
 
 interface MapViewProps {
   race: RaceDetail;
@@ -23,7 +24,7 @@ export default function MapView({ race, onMapReady }: MapViewProps) {
       return;
     }
 
-    const coords = race.course_geojson.coordinates as [number, number][];
+    const coords = race.course_gpx.coordinates as [number, number][];
     const bounds = coords.reduce(
       (b, c) => {
         b[0][0] = Math.min(b[0][0], c[0]);
@@ -55,7 +56,7 @@ export default function MapView({ race, onMapReady }: MapViewProps) {
         data: {
           type: 'Feature',
           properties: {},
-          geometry: race.course_geojson,
+          geometry: race.course_gpx,
         },
       });
 
@@ -74,12 +75,26 @@ export default function MapView({ race, onMapReady }: MapViewProps) {
         },
       });
 
-      // Checkpoint markers as circle + symbol layers
-      const checkpointFeatures: GeoJSON.Feature[] = race.split_points.map((sp) => ({
+      // Checkpoint markers — split_points is number[] (e.g. [5, 10, 15, 21.0975])
+      const courseLS = race.course_gpx as unknown as import('@/lib/interpolate').LineString;
+      const checkpointFeatures: GeoJSON.Feature[] = race.split_points.map((distKm) => {
+        const coord = getPointAtDistance(courseLS, distKm);
+        const label = distKm === race.split_points[race.split_points.length - 1]
+          ? 'FINISH'
+          : `${distKm}K`;
+        return {
+          type: 'Feature',
+          geometry: { type: 'Point', coordinates: coord },
+          properties: { name: label },
+        };
+      });
+      // Add START marker
+      const startCoord = race.course_gpx.coordinates[0];
+      checkpointFeatures.unshift({
         type: 'Feature',
-        geometry: { type: 'Point', coordinates: sp.coordinates },
-        properties: { name: sp.name },
-      }));
+        geometry: { type: 'Point', coordinates: startCoord },
+        properties: { name: 'START' },
+      });
 
       map.addSource('checkpoints', {
         type: 'geojson',

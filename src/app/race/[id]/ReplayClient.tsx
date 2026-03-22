@@ -1,9 +1,10 @@
 'use client';
 
-import { useState, useCallback, useRef, useEffect } from 'react';
+import { useState, useCallback, useRef, useEffect, useMemo } from 'react';
 import type maplibregl from 'maplibre-gl';
-import type { RaceDetail, RunnerResult } from '@/lib/types';
-import { buildRunnersGeoJSON, calculateStats } from '@/lib/animation';
+import type { RaceDetail, ResultRow } from '@/lib/types';
+import type { AnimationPayload } from '@/lib/interpolate';
+import { buildFrameGeoJSON, calculateStats } from '@/lib/animation';
 import { useRaceAnimation } from '@/hooks/useRaceAnimation';
 import MapView from '@/components/replay/MapView';
 import TopBar from '@/components/replay/TopBar';
@@ -13,20 +14,28 @@ import SearchPanel from '@/components/replay/SearchPanel';
 
 interface ReplayClientProps {
   race: RaceDetail;
-  runners: RunnerResult[];
-  totalDuration: number;
+  results: ResultRow[];
+  animationData: AnimationPayload;
 }
 
-export default function ReplayClient({ race, runners, totalDuration }: ReplayClientProps) {
+export default function ReplayClient({ race, results, animationData }: ReplayClientProps) {
   const mapInstanceRef = useRef<maplibregl.Map | null>(null);
-  const [selectedRunner, setSelectedRunner] = useState<string | null>(null);
+  const [selectedBib, setSelectedBib] = useState<string | null>(null);
+
+  const totalDuration = animationData.total_duration_sec;
 
   const { currentTime, isPlaying, playbackSpeed, play, pause, seek, setPlaybackSpeed } =
     useRaceAnimation({ totalDuration });
 
-  const stats = calculateStats(runners, currentTime);
+  const frameIndex = useMemo(
+    () => Math.min(
+      Math.floor(currentTime / animationData.frame_interval),
+      animationData.frames.length - 1,
+    ),
+    [currentTime, animationData.frame_interval, animationData.frames.length],
+  );
 
-  const courseCoords = race.course_geojson.coordinates as [number, number][];
+  const stats = calculateStats(animationData, results, frameIndex);
 
   // Update runner positions on the map each frame
   const lastUpdateRef = useRef(0);
@@ -35,7 +44,6 @@ export default function ReplayClient({ race, runners, totalDuration }: ReplayCli
     const map = mapInstanceRef.current;
     if (!map) return;
 
-    // Throttle updates to ~30fps for performance
     const now = performance.now();
     if (now - lastUpdateRef.current < 33 && isPlaying) return;
     lastUpdateRef.current = now;
@@ -43,15 +51,9 @@ export default function ReplayClient({ race, runners, totalDuration }: ReplayCli
     const source = map.getSource('runners') as maplibregl.GeoJSONSource | undefined;
     if (!source) return;
 
-    const geojson = buildRunnersGeoJSON(
-      runners,
-      currentTime,
-      race.split_points,
-      courseCoords,
-      selectedRunner,
-    );
+    const geojson = buildFrameGeoJSON(animationData, results, frameIndex, selectedBib);
     source.setData(geojson);
-  }, [currentTime, runners, race.split_points, courseCoords, selectedRunner, isPlaying]);
+  }, [frameIndex, results, animationData, selectedBib, isPlaying]);
 
   const handleMapReady = useCallback((map: maplibregl.Map) => {
     mapInstanceRef.current = map;
@@ -63,9 +65,9 @@ export default function ReplayClient({ race, runners, totalDuration }: ReplayCli
       <TopBar raceName={race.name} />
       <StatsPanel stats={stats} />
       <SearchPanel
-        runners={runners}
-        onSelectRunner={setSelectedRunner}
-        selectedRunnerId={selectedRunner}
+        runners={results}
+        onSelectRunner={setSelectedBib}
+        selectedBib={selectedBib}
       />
       <Timeline
         currentTime={currentTime}

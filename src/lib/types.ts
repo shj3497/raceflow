@@ -6,33 +6,24 @@ export interface RaceSummary {
   participant_count: number;
 }
 
-export interface SplitPoint {
-  name: string;
-  distance_km: number;
-  coordinates: [number, number]; // [lng, lat]
-}
-
 export interface RaceDetail {
   id: string;
   name: string;
   date: string;
   distance_km: number;
-  course_geojson: GeoJSON.LineString;
-  split_points: SplitPoint[];
+  course_gpx: GeoJSON.LineString; // from Supabase JSONB
+  split_points: number[]; // [5, 10, 15, 21.0975]
   participant_count: number;
 }
 
-export interface RunnerSplit {
-  split_name: string;
-  time_seconds: number; // elapsed seconds from race start
-}
-
-export interface RunnerResult {
-  id: string;
-  bib: string;
+/** Raw result row from Supabase (matches ResultRow in interpolate.ts) */
+export interface ResultRow {
+  bib_number: string;
   name: string;
-  splits: RunnerSplit[];
-  finish_time_seconds: number | null; // null if DNF
+  gender: string;
+  age_group: string;
+  net_time: string | null; // "HH:MM:SS" or null (DNF)
+  splits: Record<string, string>; // {"5": "00:25:30", ...}
 }
 
 export interface AnimationState {

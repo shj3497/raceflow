@@ -30,12 +30,6 @@ export default function StatsPanel({ stats }: { stats: RaceStats }) {
           <span className="text-gray-500">출발 전</span>
           <span className="font-semibold font-mono text-gray-500">{formatNumber(stats.notStarted)}</span>
         </div>
-        {stats.dnf > 0 && (
-          <div className="flex items-center justify-between">
-            <span className="text-red-400">DNF</span>
-            <span className="font-semibold font-mono text-red-400">{formatNumber(stats.dnf)}</span>
-          </div>
-        )}
       </div>
     </div>
   );
