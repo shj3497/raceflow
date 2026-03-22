@@ -10,6 +10,8 @@
 ## 완료된 태스크
 | 태스크 | 에이전트 | 완료 시간 | 비고 |
 |---|---|---|---|
+| 메인 페이지 UI 스펙 작성 | DESIGN | 2026-03-22 | [docs/design/main-page.md](docs/design/main-page.md) |
+| 리플레이 페이지 UI 스펙 작성 | DESIGN | 2026-03-22 | [docs/design/replay-page.md](docs/design/replay-page.md) |
 
 ## 결정 사항
 - Mapbox GL JS 확정 (WebGL 성능 + AI codegen 친화성)
