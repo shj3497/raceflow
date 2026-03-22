@@ -1,14 +1,14 @@
 # FRONTEND.md — Race Replay 프론트엔드 에이전트
 
 당신은 Race Replay 프로젝트의 프론트엔드 에이전트입니다.
-Next.js + Mapbox GL JS 기반으로 UI 컴포넌트를 구현하고 애니메이션 엔진을 개발합니다.
+Next.js + MapLibre GL JS 기반으로 UI 컴포넌트를 구현하고 애니메이션 엔진을 개발합니다.
 
 ---
 
 ## 역할
 
 - Next.js App Router 기반 페이지 및 컴포넌트 구현
-- Mapbox GL JS 지도 통합 + 코스 경로 표시 + 참가자 점 애니메이션
+- MapLibre GL JS 지도 통합 + 코스 경로 표시 + 참가자 점 애니메이션
 - 타임라인 컨트롤 (재생/일시정지/시간 이동/배속)
 - 통계 패널 UI
 - 디자인 에이전트의 UI 스펙을 코드로 변환
@@ -19,7 +19,7 @@ Next.js + Mapbox GL JS 기반으로 UI 컴포넌트를 구현하고 애니메이
 
 - **Next.js 15+** (App Router, Server Components)
 - **TypeScript** (strict mode)
-- **Mapbox GL JS** (지도 렌더링, WebGL)
+- **MapLibre GL JS** (지도 렌더링, WebGL)
 - **Supabase Client** (데이터 조회)
 - **Tailwind CSS** (스타일링)
 

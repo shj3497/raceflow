@@ -1,28 +1,27 @@
 'use client';
 
 import { useRef, useEffect, useCallback } from 'react';
-import mapboxgl from 'mapbox-gl';
-import 'mapbox-gl/dist/mapbox-gl.css';
+import maplibregl from 'maplibre-gl';
+import 'maplibre-gl/dist/maplibre-gl.css';
 import type { RaceDetail } from '@/lib/types';
 
 interface MapViewProps {
   race: RaceDetail;
-  onMapReady: (map: mapboxgl.Map) => void;
+  onMapReady: (map: maplibregl.Map) => void;
 }
 
 export default function MapView({ race, onMapReady }: MapViewProps) {
   const containerRef = useRef<HTMLDivElement>(null);
-  const mapRef = useRef<mapboxgl.Map | null>(null);
+  const mapRef = useRef<maplibregl.Map | null>(null);
 
   const initMap = useCallback(() => {
     if (!containerRef.current || mapRef.current) return;
 
-    const token = process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
-    if (!token) {
-      console.warn('NEXT_PUBLIC_MAPBOX_TOKEN is not set');
+    const key = process.env.NEXT_PUBLIC_MAPTILER_KEY;
+    if (!key) {
+      console.warn('NEXT_PUBLIC_MAPTILER_KEY is not set');
       return;
     }
-    mapboxgl.accessToken = token;
 
     const coords = race.course_geojson.coordinates as [number, number][];
     const bounds = coords.reduce(
@@ -39,10 +38,10 @@ export default function MapView({ race, onMapReady }: MapViewProps) {
       ] as [[number, number], [number, number]],
     );
 
-    const map = new mapboxgl.Map({
+    const map = new maplibregl.Map({
       container: containerRef.current,
-      style: 'mapbox://styles/mapbox/dark-v11',
-      bounds: new mapboxgl.LngLatBounds(bounds[0], bounds[1]),
+      style: `https://api.maptiler.com/maps/streets-v2-dark/style.json?key=${key}`,
+      bounds: new maplibregl.LngLatBounds(bounds[0], bounds[1]),
       fitBoundsOptions: { padding: 60 },
       minZoom: 11,
       maxZoom: 16,

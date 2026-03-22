@@ -23,7 +23,7 @@
 | 영역 | 기술 |
 |---|---|
 | 프론트엔드 | Next.js + TypeScript |
-| 지도 | Mapbox GL JS (WebGL) |
+| 지도 | MapLibre GL JS + MapTiler (WebGL) |
 | DB | Supabase (PostgreSQL) |
 | API | Next.js API Routes |
 | 크롤링 | Python 스크립트 (로컬 실행) |
