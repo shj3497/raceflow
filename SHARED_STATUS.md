@@ -14,6 +14,8 @@
 | Supabase 스키마 마이그레이션 | 데이터 | 2026-03-22 | races + results 테이블, 이미 적용됨 |
 | myresult.co.kr 크롤러 작성 | 데이터 | 2026-03-22 | API 역공학 → 병렬 크롤러 완성 |
 | Run Your Way 크롤링 + DB 적재 | 데이터 | 2026-03-22 | 9,206명 전원 수집, Supabase 적재 완료 |
+| 메인 페이지 UI 스펙 작성 | DESIGN | 2026-03-22 | docs/design/main-page.md |
+| 리플레이 페이지 UI 스펙 작성 | DESIGN | 2026-03-22 | docs/design/replay-page.md |
 
 ## 결정 사항
 
