@@ -16,6 +16,9 @@
 | Run Your Way 크롤링 + DB 적재 | 데이터 | 2026-03-22 | 9,206명 전원 수집, Supabase 적재 완료 |
 | 메인 페이지 UI 스펙 작성 | DESIGN | 2026-03-22 | docs/design/main-page.md |
 | 리플레이 페이지 UI 스펙 작성 | DESIGN | 2026-03-22 | docs/design/replay-page.md |
+| 보간 계산 로직 | DATA | 2026-03-22 | src/lib/interpolate.ts, Web Worker 호환 |
+| API Routes | DATA | 2026-03-22 | /api/races, /api/races/[id], /api/races/[id]/results |
+| Supabase 클라이언트 | DATA | 2026-03-22 | anon(client) + service role(server) 분리 |
 
 ## 결정 사항
 
