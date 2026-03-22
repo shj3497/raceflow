@@ -2,8 +2,7 @@
 
 마라톤 레이스를 실시간으로 리플레이하는 웹 서비스. 수천 명의 러너가 실제 코스 위를 달리는 모습을 지도 위에서 시각적으로 확인할 수 있습니다.
 
-<!-- 스크린샷을 docs/images/ 폴더에 넣고 경로를 수정하세요 -->
-![RaceFlow Replay](docs/images/replay-screenshot.png)
+https://github.com/shj3497/raceflow/raw/master/public/video/sample.mp4
 
 ## Features
 
@@ -16,8 +15,7 @@
 
 ## Demo
 
-<!-- GIF나 영상 링크를 추가하세요 -->
-<!-- ![RaceFlow Demo](docs/images/replay-demo.gif) -->
+https://github.com/shj3497/raceflow/raw/master/public/video/sample.mp4
 
 ## Tech Stack
 
