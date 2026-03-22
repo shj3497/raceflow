@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git -C /Users/shimhyeokjin/Desktop/my-dev/raceflow log --oneline --all | head -10)",
+      "Bash(git -C /Users/shimhyeokjin/Desktop/my-dev/raceflow show 230b612)",
+      "Bash(git -C /Users/shimhyeokjin/Desktop/my-dev/raceflow show 230b612 --stat)",
+      "Bash(git -C /Users/shimhyeokjin/Desktop/my-dev/raceflow show c3ee7d8 --stat)",
+      "Bash(grep -r \"cmux\" /Users/shimhyeokjin/Desktop/my-dev/raceflow --include=\"*.md\" 2>/dev/null | head -20)",
+      "Bash(which cmux 2>/dev/null && cmux read-screen --workspace workspace:2 2>&1 || echo \"cmux not found\")"
+    ]
+  }
+}
