@@ -3,7 +3,7 @@
 import { useState, useCallback } from 'react';
 import { formatTime } from '@/lib/utils';
 
-const SPEEDS = [1, 2, 5, 10, 30];
+const SPEEDS = [50, 100, 200];
 
 interface TimelineProps {
   currentTime: number;

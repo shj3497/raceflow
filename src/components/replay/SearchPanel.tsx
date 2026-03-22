@@ -1,16 +1,15 @@
 'use client';
 
 import { useState, useMemo } from 'react';
-import type { RunnerResult } from '@/lib/types';
-import { formatTime } from '@/lib/utils';
+import type { ResultRow } from '@/lib/types';
 
 interface SearchPanelProps {
-  runners: RunnerResult[];
-  onSelectRunner: (runnerId: string | null) => void;
-  selectedRunnerId: string | null;
+  runners: ResultRow[];
+  onSelectRunner: (bib: string | null) => void;
+  selectedBib: string | null;
 }
 
-export default function SearchPanel({ runners, onSelectRunner, selectedRunnerId }: SearchPanelProps) {
+export default function SearchPanel({ runners, onSelectRunner, selectedBib }: SearchPanelProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [query, setQuery] = useState('');
 
@@ -18,7 +17,7 @@ export default function SearchPanel({ runners, onSelectRunner, selectedRunnerId 
     if (query.length < 2) return [];
     const q = query.toLowerCase();
     return runners
-      .filter((r) => r.name.toLowerCase().includes(q) || r.bib.includes(q))
+      .filter((r) => r.name.toLowerCase().includes(q) || r.bib_number.includes(q))
       .slice(0, 10);
   }, [query, runners]);
 
@@ -45,7 +44,6 @@ export default function SearchPanel({ runners, onSelectRunner, selectedRunnerId 
 
   return (
     <div className="absolute right-4 bottom-24 z-30 w-[280px] bg-gray-900/90 backdrop-blur-lg rounded-xl border border-white/[0.06] overflow-hidden">
-      {/* Search input */}
       <div className="flex items-center px-3 py-2 border-b border-white/10">
         <svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="2" className="text-gray-500 mr-2 shrink-0">
           <circle cx="8.5" cy="8.5" r="5.5" />
@@ -66,26 +64,25 @@ export default function SearchPanel({ runners, onSelectRunner, selectedRunnerId 
         </button>
       </div>
 
-      {/* Results */}
       {results.length > 0 && (
         <div className="max-h-[240px] overflow-y-auto">
           {results.map((r) => (
             <button
-              key={r.id}
-              onClick={() => onSelectRunner(r.id === selectedRunnerId ? null : r.id)}
+              key={r.bib_number}
+              onClick={() => onSelectRunner(r.bib_number === selectedBib ? null : r.bib_number)}
               className={`w-full text-left px-3 py-2 text-sm flex items-center justify-between hover:bg-white/5 transition-colors ${
-                r.id === selectedRunnerId ? 'bg-white/10' : ''
+                r.bib_number === selectedBib ? 'bg-white/10' : ''
               }`}
             >
               <span className="text-white">
-                {r.id === selectedRunnerId && (
+                {r.bib_number === selectedBib && (
                   <span className="inline-block w-2 h-2 rounded-full bg-rose-500 mr-2" />
                 )}
-                <span className="text-gray-500 mr-1.5">#{r.bib}</span>
+                <span className="text-gray-500 mr-1.5">#{r.bib_number}</span>
                 {r.name}
               </span>
               <span className="text-gray-400 font-mono text-xs">
-                {r.finish_time_seconds ? formatTime(r.finish_time_seconds) : 'DNF'}
+                {r.net_time ?? 'DNF'}
               </span>
             </button>
           ))}

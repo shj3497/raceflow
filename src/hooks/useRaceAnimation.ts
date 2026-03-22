@@ -9,7 +9,7 @@ interface UseRaceAnimationOptions {
 export function useRaceAnimation({ totalDuration }: UseRaceAnimationOptions) {
   const [currentTime, setCurrentTime] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
-  const [playbackSpeed, setPlaybackSpeed] = useState(1);
+  const [playbackSpeed, setPlaybackSpeed] = useState(50);
 
   const animFrameRef = useRef<number>(0);
   const lastTimestampRef = useRef<number>(0);

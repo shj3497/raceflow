@@ -12,7 +12,6 @@ export async function GET() {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
-  // 각 대회의 참가자 수 조회
   const racesWithCount = await Promise.all(
     (races ?? []).map(async (race) => {
       const { count } = await supabase

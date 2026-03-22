@@ -8,7 +8,6 @@ export async function GET(
   const { id } = await params;
   const supabase = createServiceClient();
 
-  // 대회 존재 확인
   const { data: race, error: raceError } = await supabase
     .from("races")
     .select("id")

@@ -105,12 +105,6 @@ export function getPointAtDistance(
 
 /**
  * 참가자 한 명의 스플릿 데이터를 프레임별 좌표로 보간한다.
- *
- * splitDistances: [5, 10, 15, 21.0975] — 각 스플릿 통과 거리(km)
- * splits: {"5": "00:25:30", "10": "00:51:12", ...}
- *
- * 출발 지점(0km)은 시간 0, 완주 지점(distance_km)은 net_time으로 취급.
- * 누락 스플릿은 건너뛰고, 유효한 스플릿 쌍만으로 보간.
  */
 export function interpolateRunner(
   course: LineString,
@@ -124,8 +118,6 @@ export function interpolateRunner(
   const cumDist = _cumDist ?? buildCumulativeDistances(course);
   const totalCourseDist = cumDist[cumDist.length - 1];
 
-  // Build waypoints: [{distance, timeSec}] 정렬된 목록
-  // 출발점 추가
   const waypoints: { distance: number; timeSec: number }[] = [
     { distance: 0, timeSec: 0 },
   ];
@@ -138,12 +130,10 @@ export function interpolateRunner(
     }
   }
 
-  // 완주점 추가 (net_time이 있을 경우)
   if (netTimeSec !== null) {
     waypoints.push({ distance: totalCourseDist, timeSec: netTimeSec });
   }
 
-  // 시간순 정렬 (이미 거리순이라 대부분 정렬됨)
   waypoints.sort((a, b) => a.timeSec - b.timeSec);
 
   const lastWaypoint = waypoints[waypoints.length - 1];
@@ -152,19 +142,16 @@ export function interpolateRunner(
   for (let f = 0; f < totalFrames; f++) {
     const timeSec = f * frameIntervalSec;
 
-    // 출발 전
     if (timeSec < 0) {
       frames.push(null);
       continue;
     }
 
-    // 완주 후
     if (timeSec > lastWaypoint.timeSec) {
       frames.push(null);
       continue;
     }
 
-    // 해당 시간이 속하는 구간 찾기
     let segIdx = 0;
     for (let i = 1; i < waypoints.length; i++) {
       if (waypoints[i].timeSec >= timeSec) {
@@ -202,7 +189,6 @@ export function generateAnimationData(
 ): AnimationPayload {
   const cumDist = buildCumulativeDistances(course);
 
-  // 최대 시간 결정 — 가장 느린 완주자의 net_time
   let maxTimeSec = 0;
   for (const r of results) {
     const t = parseTime(r.net_time);
@@ -220,7 +206,6 @@ export function generateAnimationData(
 
   const totalFrames = Math.ceil(maxTimeSec / frameIntervalSec) + 1;
 
-  // 러너별 프레임 좌표 생성
   const runnerFrames: ([number, number] | null)[][] = results.map((r) =>
     interpolateRunner(
       course,
@@ -233,7 +218,6 @@ export function generateAnimationData(
     ),
   );
 
-  // 전치: runner[runner][frame] → frames[frame][runner]
   const frames: ([number, number] | null)[][] = [];
   for (let f = 0; f < totalFrames; f++) {
     const frame: ([number, number] | null)[] = [];
