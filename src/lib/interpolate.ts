@@ -136,6 +136,11 @@ export function interpolateRunner(
 
   waypoints.sort((a, b) => a.timeSec - b.timeSec);
 
+  // Need at least 2 waypoints to interpolate
+  if (waypoints.length < 2) {
+    return new Array(totalFrames).fill(null);
+  }
+
   const lastWaypoint = waypoints[waypoints.length - 1];
   const frames: ([number, number] | null)[] = [];
 
@@ -152,7 +157,7 @@ export function interpolateRunner(
       continue;
     }
 
-    let segIdx = 0;
+    let segIdx = 1;
     for (let i = 1; i < waypoints.length; i++) {
       if (waypoints[i].timeSec >= timeSec) {
         segIdx = i;
@@ -180,6 +185,7 @@ export function interpolateRunner(
 
 /**
  * 전체 참가자의 애니메이션 데이터를 생성한다.
+ * NOTE: 대량 데이터(9,000+명)에서는 너무 느림 — computeFramePositions 사용 권장.
  */
 export function generateAnimationData(
   course: LineString,
@@ -234,3 +240,119 @@ export function generateAnimationData(
     frames,
   };
 }
+
+// ── Per-frame on-demand computation (for large datasets) ──
+
+export interface RunnerWaypoints {
+  bib_number: string;
+  name: string;
+  gender: string;
+  age_group: string;
+  net_time: string | null;
+  netTimeSec: number | null;
+  waypoints: { distance: number; timeSec: number }[];
+}
+
+/**
+ * Pre-compute waypoints for all runners (lightweight).
+ * Returns data needed for per-frame interpolation without computing all frames.
+ */
+export function prepareRunnerWaypoints(
+  results: ResultRow[],
+  splitDistances: number[],
+  totalCourseDist: number,
+): { runners: RunnerWaypoints[]; maxTimeSec: number } {
+  let maxTimeSec = 0;
+  const runners: RunnerWaypoints[] = results.map((r) => {
+    const netTimeSec = parseTime(r.net_time);
+    if (netTimeSec !== null && netTimeSec > maxTimeSec) maxTimeSec = netTimeSec;
+
+    const waypoints: { distance: number; timeSec: number }[] = [
+      { distance: 0, timeSec: 0 },
+    ];
+
+    for (const dist of splitDistances) {
+      const key = String(dist);
+      const timeSec = parseTime(r.splits[key]);
+      if (timeSec !== null) {
+        waypoints.push({ distance: dist, timeSec });
+      }
+    }
+
+    if (netTimeSec !== null) {
+      waypoints.push({ distance: totalCourseDist, timeSec: netTimeSec });
+    }
+
+    waypoints.sort((a, b) => a.timeSec - b.timeSec);
+
+    return {
+      bib_number: r.bib_number,
+      name: r.name,
+      gender: r.gender,
+      age_group: r.age_group,
+      net_time: r.net_time,
+      netTimeSec,
+      waypoints,
+    };
+  });
+
+  return { runners, maxTimeSec };
+}
+
+/**
+ * Compute a single runner's position at a given time.
+ */
+function getRunnerPositionAtTime(
+  runner: RunnerWaypoints,
+  timeSec: number,
+  course: LineString,
+  cumDist: number[],
+): [number, number] | null {
+  const { waypoints } = runner;
+
+  if (waypoints.length < 2) return null;
+
+  const lastWaypoint = waypoints[waypoints.length - 1];
+  if (timeSec < 0 || timeSec > lastWaypoint.timeSec) return null;
+
+  let segIdx = 1;
+  for (let i = 1; i < waypoints.length; i++) {
+    if (waypoints[i].timeSec >= timeSec) {
+      segIdx = i;
+      break;
+    }
+  }
+
+  const prev = waypoints[segIdx - 1];
+  const next = waypoints[segIdx];
+  const segDuration = next.timeSec - prev.timeSec;
+
+  let distance: number;
+  if (segDuration === 0) {
+    distance = next.distance;
+  } else {
+    const t = (timeSec - prev.timeSec) / segDuration;
+    distance = prev.distance + (next.distance - prev.distance) * t;
+  }
+
+  return getPointAtDistance(course, distance, cumDist);
+}
+
+/**
+ * Compute positions for ALL runners at a specific time (single frame).
+ * Much more efficient than pre-computing all frames.
+ */
+export function computeFramePositions(
+  runners: RunnerWaypoints[],
+  timeSec: number,
+  course: LineString,
+  _cumDist?: number[],
+): ([number, number] | null)[] {
+  const cumDist = _cumDist ?? buildCumulativeDistances(course);
+  return runners.map((r) => getRunnerPositionAtTime(r, timeSec, course, cumDist));
+}
+
+/**
+ * Build cumulative distances (exposed for reuse).
+ */
+export { buildCumulativeDistances };

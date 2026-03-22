@@ -2,9 +2,9 @@
 
 import { useState, useCallback, useRef, useEffect, useMemo } from 'react';
 import type maplibregl from 'maplibre-gl';
-import type { RaceDetail, ResultRow } from '@/lib/types';
-import type { AnimationPayload } from '@/lib/interpolate';
-import { buildFrameGeoJSON, calculateStats } from '@/lib/animation';
+import type { RaceDetail } from '@/lib/types';
+import type { RunnerWaypoints, LineString } from '@/lib/interpolate';
+import { computeFramePositions, buildCumulativeDistances, parseTime } from '@/lib/interpolate';
 import { useRaceAnimation } from '@/hooks/useRaceAnimation';
 import MapView from '@/components/replay/MapView';
 import TopBar from '@/components/replay/TopBar';
@@ -14,28 +14,46 @@ import SearchPanel from '@/components/replay/SearchPanel';
 
 interface ReplayClientProps {
   race: RaceDetail;
-  results: ResultRow[];
-  animationData: AnimationPayload;
+  runners: RunnerWaypoints[];
+  maxTimeSec: number;
 }
 
-export default function ReplayClient({ race, results, animationData }: ReplayClientProps) {
+export default function ReplayClient({ race, runners, maxTimeSec }: ReplayClientProps) {
   const mapInstanceRef = useRef<maplibregl.Map | null>(null);
   const [selectedBib, setSelectedBib] = useState<string | null>(null);
 
-  const totalDuration = animationData.total_duration_sec;
+  const course = useMemo(
+    () => race.course_gpx as unknown as LineString,
+    [race.course_gpx],
+  );
+  const cumDist = useMemo(() => buildCumulativeDistances(course), [course]);
 
   const { currentTime, isPlaying, playbackSpeed, play, pause, seek, setPlaybackSpeed } =
-    useRaceAnimation({ totalDuration });
+    useRaceAnimation({ totalDuration: maxTimeSec });
 
-  const frameIndex = useMemo(
-    () => Math.min(
-      Math.floor(currentTime / animationData.frame_interval),
-      animationData.frames.length - 1,
-    ),
-    [currentTime, animationData.frame_interval, animationData.frames.length],
-  );
+  // Compute stats on-the-fly
+  const stats = useMemo(() => {
+    let onCourse = 0;
+    let finished = 0;
+    let notStarted = 0;
 
-  const stats = calculateStats(animationData, results, frameIndex);
+    for (const r of runners) {
+      if (r.waypoints.length < 2) {
+        notStarted++;
+        continue;
+      }
+      const lastWp = r.waypoints[r.waypoints.length - 1];
+      if (currentTime > lastWp.timeSec) {
+        finished++;
+      } else if (currentTime <= 0) {
+        notStarted++;
+      } else {
+        onCourse++;
+      }
+    }
+
+    return { onCourse, finished, notStarted, elapsedTime: currentTime };
+  }, [currentTime, runners]);
 
   // Update runner positions on the map each frame
   const lastUpdateRef = useRef(0);
@@ -51,13 +69,53 @@ export default function ReplayClient({ race, results, animationData }: ReplayCli
     const source = map.getSource('runners') as maplibregl.GeoJSONSource | undefined;
     if (!source) return;
 
-    const geojson = buildFrameGeoJSON(animationData, results, frameIndex, selectedBib);
-    source.setData(geojson);
-  }, [frameIndex, results, animationData, selectedBib, isPlaying]);
+    // Compute positions for current time
+    const positions = computeFramePositions(runners, currentTime, course, cumDist);
+
+    // Build GeoJSON
+    const features: GeoJSON.Feature[] = [];
+    for (let i = 0; i < runners.length; i++) {
+      const pos = positions[i];
+      if (!pos) continue;
+
+      const runner = runners[i];
+      let status = 'on_course';
+      if (runner.netTimeSec !== null && currentTime >= runner.netTimeSec) {
+        status = 'finished';
+      }
+
+      features.push({
+        type: 'Feature',
+        geometry: { type: 'Point', coordinates: pos },
+        properties: {
+          bib: runner.bib_number,
+          name: runner.name,
+          status,
+          highlighted: selectedBib === runner.bib_number,
+        },
+      });
+    }
+
+    source.setData({ type: 'FeatureCollection', features });
+  }, [currentTime, runners, course, cumDist, selectedBib, isPlaying]);
 
   const handleMapReady = useCallback((map: maplibregl.Map) => {
     mapInstanceRef.current = map;
   }, []);
+
+  // Convert RunnerWaypoints to ResultRow-like format for SearchPanel
+  const searchableRunners = useMemo(
+    () =>
+      runners.map((r) => ({
+        bib_number: r.bib_number,
+        name: r.name,
+        gender: r.gender,
+        age_group: r.age_group,
+        net_time: r.net_time,
+        splits: {} as Record<string, string>,
+      })),
+    [runners],
+  );
 
   return (
     <div className="relative w-full h-screen overflow-hidden bg-gray-900">
@@ -65,13 +123,13 @@ export default function ReplayClient({ race, results, animationData }: ReplayCli
       <TopBar raceName={race.name} />
       <StatsPanel stats={stats} />
       <SearchPanel
-        runners={results}
+        runners={searchableRunners}
         onSelectRunner={setSelectedBib}
         selectedBib={selectedBib}
       />
       <Timeline
         currentTime={currentTime}
-        totalDuration={totalDuration}
+        totalDuration={maxTimeSec}
         isPlaying={isPlaying}
         playbackSpeed={playbackSpeed}
         onPlay={play}

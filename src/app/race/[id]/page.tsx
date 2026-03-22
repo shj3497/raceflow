@@ -1,6 +1,6 @@
 import { createServiceClient } from '@/lib/supabase';
 import type { RaceDetail, ResultRow } from '@/lib/types';
-import { generateAnimationData } from '@/lib/interpolate';
+import { prepareRunnerWaypoints, buildCumulativeDistances } from '@/lib/interpolate';
 import ReplayClient from './ReplayClient';
 import { notFound } from 'next/navigation';
 
@@ -61,17 +61,22 @@ export default async function RacePage({
 
   if (!race) notFound();
 
-  const animationData = generateAnimationData(
-    race.course_gpx as unknown as import('@/lib/interpolate').LineString,
+  const course = race.course_gpx as unknown as import('@/lib/interpolate').LineString;
+  const cumDist = buildCumulativeDistances(course);
+  const totalCourseDist = cumDist[cumDist.length - 1];
+
+  // Lightweight waypoint preparation (no frame computation)
+  const { runners, maxTimeSec } = prepareRunnerWaypoints(
     results,
     race.split_points,
+    totalCourseDist,
   );
 
   return (
     <ReplayClient
       race={race}
-      results={results}
-      animationData={animationData}
+      runners={runners}
+      maxTimeSec={maxTimeSec}
     />
   );
 }
